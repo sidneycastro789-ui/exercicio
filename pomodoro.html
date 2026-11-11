@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pomodoro</title>
+<style>
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#fef3c7; font-family:system-ui,sans-serif; transition:background .4s; }
+  body.pausa { background:#d1fae5; }
+  .card { text-align:center; background:#fff; padding:32px 40px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,.12); }
+  #modo { font-weight:bold; letter-spacing:.1em; color:#b45309; }
+  body.pausa #modo { color:#047857; }
+  #tempo { font-size:5rem; font-variant-numeric:tabular-nums; margin:10px 0; }
+  button { margin:4px; padding:10px 20px; border:0; border-radius:8px; font-size:1rem; font-weight:bold; cursor:pointer; background:#f59e0b; color:#fff; }
+  body.pausa button { background:#10b981; }
+  button.sec { background:#e5e7eb; color:#374151; }
+  p { color:#6b7280; margin:12px 0 0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="modo">FOCO</div>
+  <div id="tempo">25:00</div>
+  <button id="go">Iniciar</button>
+  <button class="sec" id="reset">Zerar</button>
+  <p>Ciclos concluídos: <span id="ciclos">0</span></p>
+</div>
+<script>
+const FOCO = 25*60, PAUSA = 5*60;
+let restante = FOCO, foco = true, rodando = false, id = null, ciclos = 0;
+const $ = x => document.getElementById(x);
+function mostrar() {
+  const m = String(Math.floor(restante/60)).padStart(2,'0'), s = String(restante%60).padStart(2,'0');
+  $('tempo').textContent = m + ':' + s;
+  $('modo').textContent = foco ? 'FOCO' : 'PAUSA';
+  document.body.classList.toggle('pausa', !foco);
+  document.title = m + ':' + s + ' · Pomodoro';
+}
+function tick() {
+  restante--;
+  if (restante <= 0) {
+    if (foco) { ciclos++; $('ciclos').textContent = ciclos; }
+    foco = !foco; restante = foco ? FOCO : PAUSA;
+    try { new AudioContext().resume(); const a = new AudioContext(), o = a.createOscillator(); o.connect(a.destination); o.start(); o.stop(a.currentTime+.4); } catch(e) {}
+  }
+  mostrar();
+}
+$('go').onclick = () => {
+  rodando = !rodando;
+  $('go').textContent = rodando ? 'Pausar' : 'Continuar';
+  if (rodando) id = setInterval(tick, 1000); else clearInterval(id);
+};
+$('reset').onclick = () => {
+  clearInterval(id); rodando = false; foco = true; restante = FOCO;
+  $('go').textContent = 'Iniciar'; mostrar();
+};
+mostrar();
+</script>
+</body>
+</html>
