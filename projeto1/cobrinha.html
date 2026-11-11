@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cobrinha</title>
+<style>
+  body { margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:#e2e8f0; font-family:system-ui,sans-serif; }
+  canvas { background:#020617; border:3px solid #22c55e; border-radius:8px; }
+  h1 { margin:0 0 8px; color:#22c55e; }
+  p { margin:8px 0 0; }
+  button { margin-top:10px; padding:8px 18px; border:0; border-radius:6px; background:#22c55e; color:#022c22; font-weight:bold; cursor:pointer; }
+</style>
+</head>
+<body>
+<h1>🐍 Cobrinha</h1>
+<canvas id="c" width="400" height="400"></canvas>
+<p>Pontos: <span id="s">0</span> · Use as setas do teclado</p>
+<button onclick="reiniciar()">Reiniciar</button>
+<script>
+const c = document.getElementById('c'), ctx = c.getContext('2d');
+const T = 20, N = c.width / T;
+let cobra, dir, comida, pontos, fim, timer;
+
+function reiniciar() {
+  cobra = [{x:10,y:10}]; dir = {x:1,y:0}; pontos = 0; fim = false;
+  document.getElementById('s').textContent = 0;
+  novaComida();
+  clearInterval(timer);
+  timer = setInterval(passo, 120);
+}
+function novaComida() {
+  do { comida = {x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)}; }
+  while (cobra.some(p => p.x===comida.x && p.y===comida.y));
+}
+function passo() {
+  if (fim) return;
+  const h = {x:cobra[0].x+dir.x, y:cobra[0].y+dir.y};
+  if (h.x<0||h.y<0||h.x>=N||h.y>=N||cobra.some(p=>p.x===h.x&&p.y===h.y)) { fim = true; desenhar(); return; }
+  cobra.unshift(h);
+  if (h.x===comida.x && h.y===comida.y) { pontos++; document.getElementById('s').textContent = pontos; novaComida(); }
+  else cobra.pop();
+  desenhar();
+}
+function desenhar() {
+  ctx.fillStyle = '#020617'; ctx.fillRect(0,0,c.width,c.height);
+  ctx.fillStyle = '#ef4444'; ctx.fillRect(comida.x*T+2, comida.y*T+2, T-4, T-4);
+  cobra.forEach((p,i) => { ctx.fillStyle = i? '#22c55e':'#86efac'; ctx.fillRect(p.x*T+1, p.y*T+1, T-2, T-2); });
+  if (fim) {
+    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 28px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('Fim de jogo!', c.width/2, c.height/2);
+  }
+}
+document.addEventListener('keydown', e => {
+  const m = {ArrowUp:{x:0,y:-1}, ArrowDown:{x:0,y:1}, ArrowLeft:{x:-1,y:0}, ArrowRight:{x:1,y:0}}[e.key];
+  if (!m) return;
+  e.preventDefault();
+  if (m.x === -dir.x && m.y === -dir.y) return;
+  dir = m;
+});
+reiniciar();
+</script>
+</body>
+</html>

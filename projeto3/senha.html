@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Força da Senha</title>
+<style>
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0b1020; color:#e5e7eb; font-family:system-ui,sans-serif; }
+  .card { width:min(420px,92vw); background:#151b32; padding:24px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+  h1 { margin:0 0 16px; font-size:1.3rem; }
+  input { width:100%; box-sizing:border-box; padding:10px 12px; border-radius:8px; border:1px solid #334155; background:#0b1020; color:#fff; font-size:1rem; }
+  .barra { height:10px; background:#1e293b; border-radius:6px; margin:14px 0 6px; overflow:hidden; }
+  #nivel { height:100%; width:0; transition:width .25s, background .25s; }
+  #texto { font-weight:bold; margin-bottom:10px; }
+  ul { list-style:none; padding:0; margin:0; font-size:.92rem; }
+  li { padding:3px 0; color:#94a3b8; }
+  li.ok { color:#4ade80; }
+  li::before { content:'✗ '; }
+  li.ok::before { content:'✓ '; }
+  small { display:block; margin-top:14px; color:#64748b; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🔐 Verificador de força de senha</h1>
+  <input id="p" type="text" placeholder="Digite uma senha de teste..." autocomplete="off">
+  <div class="barra"><div id="nivel"></div></div>
+  <div id="texto">—</div>
+  <ul id="regras"></ul>
+  <small>Tudo roda no seu navegador, nada é enviado. Não use senhas reais.</small>
+</div>
+<script>
+const regras = [
+  ['Pelo menos 12 caracteres', s => s.length >= 12],
+  ['Letra minúscula', s => /[a-z]/.test(s)],
+  ['Letra maiúscula', s => /[A-Z]/.test(s)],
+  ['Número', s => /\d/.test(s)],
+  ['Símbolo', s => /[^A-Za-z0-9]/.test(s)],
+  ['Sem sequências comuns (123, abc, senha, qwerty)', s => !/(123|abc|senha|password|qwerty)/i.test(s)]
+];
+const ul = document.getElementById('regras');
+regras.forEach(r => { const li = document.createElement('li'); li.textContent = r[0]; ul.appendChild(li); });
+const niveis = [['—','#334155'],['Muito fraca','#ef4444'],['Fraca','#f97316'],['Razoável','#eab308'],['Boa','#84cc16'],['Forte','#22c55e'],['Excelente','#10b981']];
+document.getElementById('p').addEventListener('input', e => {
+  const s = e.target.value;
+  let pts = 0;
+  regras.forEach((r,i) => { const ok = r[1](s); ul.children[i].className = ok && s ? 'ok' : ''; if (ok && s) pts++; });
+  const n = document.getElementById('nivel');
+  n.style.width = (pts/regras.length*100) + '%';
+  n.style.background = niveis[pts][1];
+  document.getElementById('texto').textContent = s ? niveis[pts][0] : '—';
+});
+</script>
+</body>
+</html>
